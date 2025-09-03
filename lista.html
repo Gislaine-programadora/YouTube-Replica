@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Replica</title>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Cabeçalho -->
+  <header class="bg-red-600 text-white p-4 flex items-center justify-between">
+    <h1 class="text-xl font-bold">YouTube Replica 🎬</h1>
+    <div class="flex items-center space-x-2">
+      <input id="search-input" type="text" placeholder="Buscar vídeos..."
+        class="px-3 py-2 rounded-md text-black w-64">
+      <button onclick="searchVideos()"
+        class="bg-white text-red-600 px-4 py-2 rounded-md font-semibold">
+        Buscar
+      </button>
+    </div>
+  </header>
+
+  <!-- Player principal -->
+  <main class="p-6">
+    <div id="player-container" class="w-full max-w-4xl mx-auto mb-8">
+      <div id="player"></div>
+      <h2 id="video-title" class="text-xl font-bold mt-4"></h2>
+      <p id="video-info" class="text-gray-600"></p>
+    </div>
+
+    <!-- Grid de resultados -->
+    <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </main>
+
+  <script>
+    const API_KEY = "AIzaSyCLsn0TzGLYVPpGKF6NJmR5URE8a7jAN2c"; // <-- coloque aqui a sua chave completa
+    let player;
+    let playerReady = false;
+
+    // Inicializa o player principal (YouTube IFrame API chama isso automaticamente)
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player("player", {
+        height: "500",
+        width: "100%",
+        videoId: "", // começa vazio
+        playerVars: { autoplay: 0, controls: 1 },
+        events: {
+          onReady: () => {
+            console.log("✅ Player pronto!");
+            playerReady = true;
+          }
+        }
+      });
+    }
+
+    // Função de busca
+    async function searchVideos() {
+      const query = document.getElementById("search-input").value.trim();
+      if (!query) {
+        alert("Digite algo para buscar!");
+        return;
+      }
+
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=9&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) {
+          console.error("Erro da API:", data.error.message);
+          alert("Erro na busca: " + data.error.message);
+          return;
+        }
+
+        const grid = document.getElementById("videos-grid");
+        grid.innerHTML = "";
+
+        data.items.forEach(video => {
+          const videoId = video.id.videoId;
+          const snippet = video.snippet;
+
+          const videoItem = document.createElement("div");
+          videoItem.className =
+            "bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition";
+
+          videoItem.innerHTML = `
+            <img src="${snippet.thumbnails.medium.url}" alt="${snippet.title}" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-semibold text-lg">${snippet.title}</h3>
+              <p class="text-sm text-gray-600">${snippet.channelTitle}</p>
+            </div>
+          `;
+
+          videoItem.addEventListener("click", () => playVideo(videoId, snippet));
+          grid.appendChild(videoItem);
+        });
+      } catch (err) {
+        console.error("Erro no fetch:", err);
+        alert("Não foi possível buscar os vídeos. Veja o console.");
+      }
+    }
+
+    // Reproduz vídeo no player
+    function playVideo(videoId, snippet) {
+      if (!playerReady) {
+        alert("Player ainda não está pronto. Tente novamente em alguns segundos.");
+        return;
+      }
+
+      console.log("▶️ Reproduzindo vídeo:", videoId);
+      player.loadVideoById({ videoId, suggestedQuality: "hd720" });
+      document.getElementById("video-title").textContent = snippet.title;
+      document.getElementById("video-info").textContent = snippet.channelTitle;
+    }
+  </script>
+</body>
+</html>
+
+

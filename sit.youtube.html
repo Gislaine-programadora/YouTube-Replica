@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vídeos em Alta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+        }
+        main {
+            padding: 20px;
+        }
+        #video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .video-item {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .video-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+        .video-item img {
+            width: 100%;
+            display: block;
+        }
+        .video-item div {
+            padding: 10px;
+        }
+        .video-item h3 {
+            margin: 0 0 5px;
+            font-size: 16px;
+            color: #333;
+        }
+        .video-item p {
+            margin: 0;
+            font-size: 12px;
+            color: #777;
+        }
+        #video-player {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 9999;
+        }
+        #video-player.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        #video-player iframe {
+            width: 80%;
+            height: 80%;
+            border: none;
+            border-radius: 8px;
+        }
+        #close-player {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            color: #fff;
+            font-size: 40px;
+            border: none;
+            cursor: pointer;
+        }
+        @media(max-width: 600px){
+            #video-player iframe {
+                width: 95%;
+                height: 60%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="ml-64 p-8 flex-1">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Vídeos em Alta</h2>
+            <div id="video-list">
+                <!-- Vídeos -->
+                <div class="video-item" data-video-id="dQw4w9WgXcQ">
+                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="Rick Astley">
+                    <div>
+                        <h3>Rick Astley - Never Gonna Give You Up</h3>
+                        <p>RickAstleyVEVO • 1B visualizações • 13 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="3JZ_D3ELwOQ">
+                    <img src="https://img.youtube.com/vi/3JZ_D3ELwOQ/hqdefault.jpg" alt="Ed Sheeran">
+                    <div>
+                        <h3>Ed Sheeran - Shape of You</h3>
+                        <p>Ed Sheeran • 5B visualizações • 6 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="9bZkp7q19f0">
+                    <img src="https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg" alt="PSY">
+                    <div>
+                        <h3>PSY - GANGNAM STYLE</h3>
+                        <p>officialpsy • 4B visualizações • 12 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="fRh_vgS2dFE">
+                    <img src="https://img.youtube.com/vi/fRh_vgS2dFE/hqdefault.jpg" alt="Justin Bieber">
+                    <div>
+                        <h3>Justin Bieber - Sorry</h3>
+                        <p>JustinBieberVEVO • 3B visualizações • 7 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="kJQP7kiw5Fk">
+                    <img src="https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg" alt="Luis Fonsi">
+                    <div>
+                        <h3>Luis Fonsi - Despacito ft. Daddy Yankee</h3>
+                        <p>LuisFonsiVEVO • 8B visualizações • 6 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="2Vv-BfVoq4g">
+                    <img src="https://img.youtube.com/vi/2Vv-BfVoq4g/hqdefault.jpg" alt="Ed Sheeran">
+                    <div>
+                        <h3>Ed Sheeran - Perfect</h3>
+                        <p>Ed Sheeran • 3B visualizações • 6 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="JGwWNGJdvx8">
+                    <img src="https://img.youtube.com/vi/JGwWNGJdvx8/hqdefault.jpg" alt="Ed Sheeran">
+                    <div>
+                        <h3>Ed Sheeran - Shape of You (Acoustic)</h3>
+                        <p>Ed Sheeran • 500M visualizações • 5 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="e-ORhEE9VVg">
+                    <img src="https://img.youtube.com/vi/e-ORhEE9VVg/hqdefault.jpg" alt="Taylor Swift">
+                    <div>
+                        <h3>Taylor Swift - Blank Space</h3>
+                        <p>TaylorSwiftVEVO • 3B visualizações • 8 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="OPf0YbXqDm0">
+                    <img src="https://img.youtube.com/vi/OPf0YbXqDm0/hqdefault.jpg" alt="Mark Ronson">
+                    <div>
+                        <h3>Mark Ronson - Uptown Funk ft. Bruno Mars</h3>
+                        <p>MarkRonsonVEVO • 5B visualizações • 6 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="uelHwf8o7_U">
+                    <img src="https://img.youtube.com/vi/uelHwf8o7_U/hqdefault.jpg" alt="Eminem">
+                    <div>
+                        <h3>Eminem - Love The Way You Lie ft. Rihanna</h3>
+                        <p>EminemVEVO • 2B visualizações • 10 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="CevxZvSJLk8">
+                    <img src="https://img.youtube.com/vi/CevxZvSJLk8/hqdefault.jpg" alt="Katy Perry">
+                    <div>
+                        <h3>Katy Perry - Roar</h3>
+                        <p>KatyPerryVEVO • 1B visualizações • 8 anos atrás</p>
+                    </div>
+                </div>
+
+                <div class="video-item" data-video-id="hT_nvWreIhg">
+                    <img src="https://img.youtube.com/vi/hT_nvWreIhg/hqdefault.jpg" alt="Imagine Dragons">
+                    <div>
+                        <h3>Imagine Dragons - Believer</h3>
+                        <p>ImagineDragonsVEVO • 2B visualizações • 6 anos atrás</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Player Overlay -->
+    <div id="video-player">
+        <iframe id="video-iframe" src="" frameborder="0" allowfullscreen></iframe>
+        <button id="close-player">&times;</button>
+    </div>
+
+    <script>
+        const videoItems = document.querySelectorAll('.video-item');
+        const videoPlayer = document.getElementById('video-player');
+        const videoIframe = document.getElementById('video-iframe');
+        const closePlayer = document.getElementById('close-player');
+
+        videoItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const videoId = item.dataset.videoId;
+                videoIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                videoPlayer.classList.add('show');
+            });
+        });
+
+        closePlayer.addEventListener('click', () => {
+            videoIframe.src = '';
+            videoPlayer.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

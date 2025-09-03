@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Replica - Tema Vermelho Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', serif;
+            background-color: #f9f9f9;
+        }
+        .red-theme {
+            background: linear-gradient(90deg, #ff0000, #cc0000);
+            color: white;
+            box-shadow: 0 2px 4px rgba(255,0,0,0.3);
+        }
+        .red-hover:hover {
+            background: linear-gradient(90deg, #cc0000, #ff0000);
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        }
+        .sidebar-closed {
+            transform: translateX(-100%);
+        }
+        .video-player {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .video-player.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .video-iframe {
+            width: 95%;
+            max-width: 1200px;
+            height: 85%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .video-liked {
+            color: #ff0000 !important;
+            animation: bounce 0.5s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .thumb-container img {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .thumb-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,0,0,0.3);
+        }
+        .video-item {
+            animation: slideIn 0.5s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loading {
+            display: inline-block;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #ff0000;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        footer {
+            background: linear-gradient(180deg, #ffffff, #f0f0f0);
+            border-top: 1px solid #ddd;
+        }
+        .thumbnail-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #ffcccc, #ffaaaa);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 red-theme shadow-lg">
+        <div class="flex items-center justify-between px-6 py-3">
+            <div class="flex items-center space-x-4">
+                <button id="menu-toggle" class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-full transition-all">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-3xl font-bold tracking-wider">YouTube</h1>
+            </div>
+            <div class="flex-1 max-w-2xl mx-6">
+                <div class="relative">
+                    <input id="search-input" type="text" placeholder="Buscar vídeos, canais ou tendências..." class="w-full px-4 py-3 rounded-full border-2 border-white bg-white text-gray-900 focus:outline-none focus:ring-4 focus:ring-red-300 focus:border-red-500 transition-all pr-16">
+                    <button id="search-btn" class="absolute right-2 top-2 bottom-2 bg-red-500 hover:bg-red-600 text-white px-4 rounded-full transition-all">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-white hover:bg-white hover:bg-opacity-20 p-3 rounded-full transition-all" title="Criar vídeo">
+                    <i class="fas fa-video-plus text-lg"></i>
+                </button>
+                <button class="text-white hover:bg-white hover:bg-opacity-20 p-3 rounded-full transition-all relative" title="Notificações">
+                    <i class="fas fa-bell text-lg"></i>
+                    <span class="absolute top-1 right-1 bg-white text-red-500 text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+                </button>
+                <button id="login-btn" class="text-white bg-red-500 hover:bg-red-600 px-6 py-3 rounded-full font-semibold transition-all">
+                    <i class="fas fa-user mr-2"></i>Entrar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar bg-white w-64 p-6 fixed left-0 top-20 h-full overflow-y-auto border-r border-gray-200">
+            <nav>
+                <h3 class="text-lg font-bold text-red-600 mb-4">Menu Principal</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-center py-3 px-4 hover:bg-red-100 red-hover rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-home mr-3 text-red-500"></i><span class="font-medium">Página Inicial</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-red-100 red-hover rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-play-circle mr-3 text-red-500"></i><span class="font-medium">Shorts</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-red-100 red-hover rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-subscriptions mr-3 text-red-500"></i><span class="font-medium">Inscrições</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-red-100 red-hover rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-compass mr-3 text-red-500"></i><span class="font-medium">Explorar</span>
+                    </li>
+                    <hr class="my-4 border-gray-300">
+                    <li class="flex items-center py-3 px-4 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-folder mr-3"></i><span class="font-medium">Biblioteca</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-clock-rotate-left mr-3"></i><span class="font-medium">Histórico</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-play-circle mr-3"></i><span class="font-medium">Seus vídeos</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-clock mr-3"></i><span class="font-medium">Assistir mais tarde</span>
+                    </li>
+                    <li class="flex items-center py-3 px-4 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-thumbs-up mr-3"></i><span class="font-medium">Vídeos curtidos</span>
+                    </li>
+                </ul>
+                <hr class="my-4 border-gray-300">
+                <div class="text-xs text-gray-500 px-4 mt-6">
+                    <p class="mb-2">Esta é uma réplica fiel do YouTube, criada com HTML, CSS e JavaScript. Inspirada na interface real, mas sem funcionalidades backend reais.</p>
+                    <p><strong>Dica:</strong> Clique nos vídeos para assistir!</p>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-8 flex-1">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Recomendados para você</h2>
+                <p class="text-gray-600">Descubra novos vídeos inspirados nas suas preferências</p>
+            </div>
+            <section id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Vídeos serão inseridos aqui via JS -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div id="video-player" class="video-player">
+        <div class="video-iframe bg-black rounded-lg overflow-hidden">
+            <div class="relative bg-white p-4">
+                <h3 id="video-title" class="text-lg font-bold text-gray-900 mb-2"></h3>
+                <p id="video-info" class="text-gray-600 text-sm mb-4"></p>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-6">
+                        <button id="like-btn" class="flex items-center space-x-2 hover:text-red-500 text-red-600 font-semibold" onclick="toggleLike()">
+                            <i class="fas fa-thumbs-up"></i><span id="like-count">0</span>
+                        </button>
+                        <button id="dislike-btn" class="flex items-center space-x-2 hover:text-red-500 text-gray-600" onclick="toggleDislike()">
+                            <i class="fas fa-thumbs-down"></i><span id="dislike-count">0</span>
+                        </button>
+                        <button class="flex items-center space-x-2 hover:text-red-500 text-gray-600" onclick="share()">
+                            <i class="fas fa-share"></i>Compartilhar
+                        </button>
+                        <button class="flex items-center space-x-2 hover:text-red-500 text-gray-600" onclick="download()">
+                            <i class="fas fa-download"></i>Baixar
+                        </button>
+                    </div>
+                    <button onclick="closePlayer()" class="text-gray-500 hover:text-red-500">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="bg-black flex items-center justify-center h-96 relative">
+                    <div id="loading-spinner" class="loading w-8 h-8 hidden absolute top-4 right-4"></div>
+                    <iframe id="player-iframe" width="100%" height="100%" src="" frameborder="0" allow="autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+            <div id="comments-section" class="p-4 bg-white hidden">
+                <h4 class="text-lg font-bold text-red-600 mb-4 flex items-center">
+                    <i class="fas fa-comments mr-2"></i>Comentários
+                </h4>
+                <div class="space-y-4 max-h-64 overflow-y-auto">
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <p class="font-semibold text-red-600">Ana Cardoso</p>
+                        <p class="text-gray-700">Que vídeo incrível! Sempre aprendo algo novo com você 🔥</p>
+                        <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                            <div class="flex space-x-4">
+                                <span>👍 25</span><span>👎 1</span>
+                            </div>
+                            <span>há 3 horas</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <p class="font-semibold text-red-600">Carlos Mendes</p>
+                        <p class="text-gray-700">Parabéns pelo conteúdo! Muito bem explicado.</p>
+                        <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                            <div class="flex space-x-4">
+                                <span>👍 18</span><span>👎 0</span>
+                            </div>
+                            <span>há 6 horas</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <p class="font-semibold text-red-600">Maria Ferreira</p>
+                        <p class="text-gray-700">Adorei! Vou compartilhar com meus amigos.</p>
+                        <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                            <div class="flex space-x-4">
+                                <span>👍 12</span><span>👎 0</span>
+                            </div>
+                            <span>há 8 horas</span>
+                        </div>
+                    </div>
+                </div>
+                <textarea id="new-comment" class="w-full border border-gray-300 rounded-lg p-3 mt-4 resize-none" placeholder="Adicione um comentário público..."></textarea>
+                <div class="flex justify-between items-center mt-2">
+                    <small class="text-gray-500">0/100 caracteres</small>
+                    <button onclick="addComment()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">Comentar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-600">
+            <div>
+                <h5 class="font-bold mb-3 text-red-600 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>Sobre
+                </h5>
+                <ul class="space-y-1">
+                    <li><a href="#" class="hover:text-red-500 transition">Sobre o YouTube</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Carreiras</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Tornar-se criador</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Diretrizes da comunidade</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold mb-3 text-red-600 flex items-center">
+                    <i class="fas fa-life-ring mr-2"></i>Suporte
+                </h5>
+                <ul class="space-y-1">
+                    <li><a href="#" class="hover:text-red-500 transition">Centro de Ajuda</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Suporte de segurança</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Contato</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Direitos autorais</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold mb-3 text-red-600 flex items-center">
+                    <i class="fas fa-file-contract mr-2"></i>Termos
+                </h5>
+                <ul class="space-y-1">
+                    <li><a href="#" class="hover:text-red-500 transition">Termos de uso</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Política de privacidade</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Funcionamento da API</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">Política de conteúdo</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold mb-3 text-red-600 flex items-center">
+                    <i class="fas fa-compass mr-2"></i>Principais produtos
+                </h5>
+                <ul class="space-y-1">
+                    <li><a href="#" class="hover:text-red-500 transition">App YouTube (iOS/Android)</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">YouTube TV</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">YouTube Music</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition">YouTube Kids</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-200 text-center">
+            <p class="text-xs text-gray-500">© 2023 YouTube Replica. Inspirado na interface oficial do YouTube. Criado para fins educacionais e demonstrativos. Não afiliado ao Google Inc.</p>
+        </div>
+    </footer>
+
+    <script>
+        const videos = [
+            {
+                id: 'dQw4w9WgXcQ', 
+                title: 'Rick Astley - Nunca Mais Vou Te Deixar Sofrer (Videoclipe Oficial)', 
+                channel: 'Rick Astley Oficial', 
+                views: '1.4B de visualizações • há 12 dias', 
+                duration: '3:32',
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a1b2d16a-dfdc-474b-a43a-53ae082e1ae9.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'jNQXAC9IVRw', 
+                title: 'Eu no zoológico - Vídeo ORIGINAL do YouTube', 
+                channel: 'Jawed', 
+                views: '200M de visualizações • há 17 anos', 
+                duration: '0:19',
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/726ae66f-684f-4ee6-beb3-abb6db690c29.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: '9bZkp7q19f0', 
+                title: 'PSY - Gangnam Style (강남스타일) M/V', 
+                channel: 'Official PSY', 
+                views: '4.8B de visualizações • há 11 anos', 
+                duration: '4:12',
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2778e36a-5c7e-4572-94ec-6f94cfb0a111.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'kJQP7kiw5Fk', 
+                title: 'Despacito ft. Justin Bieber', 
+                channel: 'Luis Fonsi', 
+                views: '8.2B de visualizações • há 6 anos', 
+                duration: '4:42',
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c761ca45-a98f-4293-8ae7-fc0554cc420b.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'hTWKbfoikeg', 
+                title: 'Nirvana - Smells Like Teen Spirit (Videoclipe Oficial)', 
+                channel: 'Nirvana Oficial', 
+                views: '1.2B de visualizações • há 3 anos', 
+                duration: '4:38',
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5ec8cd22-ccfa-42d9-8297-ead013343d2f.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: '0tgNpAG38sM', 
+                title: 'Baby Shark Dance | #BABYSHARK', 
+                channel: 'BABYSHARK OFICIAL', 
+                views: '12B de visualizações • há 5 anos', 
+                duration: '1:32', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/523c9965-73b6-4598-8b87-460350fa30cf.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'S1y9xcdPnK4', 
+                title: 'Adele - Someone Like You (Videoclipe Oficial)', 
+                channel: 'Adele', 
+                views: '3.4B de visualizações • há 3 anos', 
+                duration: '4:45', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/6c73fd26-f86f-4e0e-86eb-3554bd1da081.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'HPo0TEhTKd4', 
+                title: 'The Beatles - Yellow Submarine (1972)', 
+                channel: 'The Beatles', 
+                views: '100M de visualizações • há 52 anos', 
+                duration: '2:47', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/4c87b7a0-2c52-4089-9644-11cac255674a.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'sPZeqxA8B78', 
+                title: 'Avengers: Endgame - Trailer Oficial', 
+                channel: 'Marvel Entertainment', 
+                views: '200M de visualizações • há 1 ano', 
+                duration: '3:21', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ef8e56e9-6a00-4d46-8026-ab42bb15bc82.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'PURFkxny3Wk', 
+                title: 'Como Usar o YouTube: Guia para Iniciantes', 
+                channel: 'YouTube Basics', 
+                views: '500K de visualizações • há 1 semana', 
+                duration: '5:15', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/735e5757-bfb8-433a-baef-684487c7f3e5.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'zUcYtpWQ4ZA', 
+                title: 'Queen - Bohemian Rhapsody (Vídeo Oficial Remasterizado)', 
+                channel: 'Queen Oficial', 
+                views: '2.7B de visualizações • há 2 anos', 
+                duration: '5:55', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/9f03ab79-b848-4902-a65f-03777828ee0f.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'WfETS0etiLw', 
+                title: 'BTS (방탄소년단) Butter (Videoclipe Oficial)', 
+                channel: 'BTS', 
+                views: '600M de visualizações • há 2 anos', 
+                duration: '3:23', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7d8c1942-8a87-49f6-bec9-7fbfa71618a9.png',
+                likes: 0,
+                dislikes: 0
+            },
+            // Adicionando mais vídeos para enriquecer
+            {
+                id: 'JGwWNGJdvx8', 
+                title: 'Ed Sheeran - Shape of You (Official Music Video)', 
+                channel: 'Ed Sheeran', 
+                views: '5.6B de visualizações • há 6 anos', 
+                duration: '3:53', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/14d997d0-ac07-44d1-b2f0-d195b2aabbc2.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'hTWKbfoikegN', 
+                title: 'Michael Jackson - Thriller (Official Music Video) - 4K', 
+                channel: 'Michael Jackson', 
+                views: '1.3B de visualizações • há 2 anos', 
+                duration: '13:42', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/243eb949-deba-4389-a2e0-f1255e1289d3.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: 'kffacxfA7G4', 
+                title: 'Maroon 5 - Moves Like Jagger ft. Christina Aguilera', 
+                channel: 'Maroon 5', 
+                views: '1.8B de visualizações • há 10 anos', 
+                duration: '3:21', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f54b4911-20ea-4b64-82e4-aa0d48dc1ff2.png',
+                likes: 0,
+                dislikes: 0
+            },
+            {
+                id: '8SbUC-UaAxE', 
+                title: 'Coldplay - Viva la Vida', 
+                channel: 'Coldplay', 
+                views: '1.5B de visualizações • há 3 anos', 
+                duration: '4:02', 
+                thumbnail: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2d6ebb44-b23e-4ed1-aaf2-15137c2f7b4a.png',
+                likes: 0,
+                dislikes: 0
+            }
+        ];
+
+        let filteredVideos = [...videos];
+        let currentVideo = null;
+        let liked = false, disliked = false;
+
+        function renderVideos() {
+            const grid = document.getElementById('videos-grid');
+            grid.innerHTML = '';
+            filteredVideos.forEach((video, index) => {
+                const videoDiv = document.createElement('div');
+                videoDiv.className = 'video-item bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer';
+                videoDiv.innerHTML = `
+                    <div class="thumb-container relative group">
+                        <img src="${video.thumbnail}" alt="Capa do ${video.title}: Cena icônica demonstrando performance vibrante com estética visual dinâmica, tons vermelhos e azuis, composição centrada em ${video.channel}, estilo artístico contemporâneo e energético" class="w-full h-48 object-cover transition-all duration-300" loading="lazy" onerror="this.src='https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/391b9b86-b67e-45a5-a97f-dddc462b70c7.png'">
+                        <span class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white px-2 py-1 text-xs rounded-md font-semibold">${video.duration}</span>
+                        <div class="absolute inset-0 bg-red-500 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-play text-white text-4xl opacity-0 group-hover:opacity-100 transition-all duration-300"></i>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-sm text-gray-900 line-clamp-2 leading-tight hover:text-red-500 transition">${video.title}</h3>
+                        <p class="text-gray-600 text-xs mt-2 hover:text-red-500 transition cursor-pointer">${video.channel}</p>
+                        <p class="text-gray-500 text-xs mt-1">${video.views}</p>
+                    </div>
+                `;
+                videoDiv.addEventListener('click', () => openPlayer(video));
+                grid.appendChild(videoDiv);
+            });
+        }
+
+        function openPlayer(video) {
+            currentVideo = { ...video };
+            document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`;
+            document.getElementById('video-title').textContent = video.title;
+            document.getElementById('video-info').textContent = `${video.channel} • ${video.views}`;
+            document.getElementById('like-count').textContent = video.likes;
+            document.getElementById('dislike-count').textContent = video.dislikes;
+            document.getElementById('video-player').classList.add('show');
+            document.getElementById('comments-section').classList.remove('hidden');
+            const spinner = document.getElementById('loading-spinner');
+            spinner.classList.remove('hidden');
+            setTimeout(() => spinner.classList.add('hidden'), 1000);
+        }
+
+        function closePlayer() {
+            document.getElementById('video-player').classList.remove('show');
+            document.getElementById('player-iframe').src = '';
+            document.getElementById('comments-section').classList.add('hidden');
+            currentVideo = null;
+        }
+
+        function toggleLike() {
+            if (!currentVideo) return;
+            if (disliked) toggleDislike();
+            liked = !liked;
+            const btn = document.getElementById('like-btn');
+            currentVideo.likes += liked ? 1 : -1;
+            document.getElementById('like-count').textContent = currentVideo.likes;
+            if (liked) {
+                btn.classList.add('video-liked');
+            } else {
+                btn.classList.remove('video-liked');
+            }
+        }
+
+        function toggleDislike() {
+            if (!currentVideo) return;
+            if (liked) toggleLike();
+            disliked = !disliked;
+            const btn = document.getElementById('dislike-btn');
+            currentVideo.dislikes += disliked ? 1 : -1;
+            document.getElementById('dislike-count').textContent = currentVideo.dislikes;
+            if (disliked) {
+                btn.classList.add('text-red-500');
+            } else {
+                btn.classList.remove('text-red-500');
+            }
+        }
+
+        function share() {
+            const url = `https://www.youtube.com/watch?v=${currentVideo.id}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert(`Link copiado: ${url}`);
+            });
+        }
+
+        function download() {
+            alert('Baixar vídeo não disponível nesta versão demo.');
+        }
+
+        function addComment() {
+            const textarea = document.getElementById('new-comment');
+            if (textarea.value.trim().length === 0) return;
+            const newCommentDiv = document.createElement('div');
+            newCommentDiv.className = 'bg-gray-100 p-3 rounded-lg mt-4 animate-pulse';
+            newCommentDiv.innerHTML = `
+                <p class="font-semibold text-red-600">Você (Visitante)</p>
+                <p class="text-gray-700">${textarea.value}</p>
+                <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                    <div class="flex space-x-4">
+                        <span>👍 0</span><span>👎 0</span>
+                    </div>
+                    <span>Agora</span>
+                </div>
+            `;
+            const commentsContainer = document.getElementById('comments-section');
+            commentsContainer.insertBefore(newCommentDiv, commentsContainer.lastElementChild);
+            textarea.value = '';
+        }
+
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            filteredVideos = videos.filter(v => v.title.toLowerCase().includes(query) || v.channel.toLowerCase().includes(query));
+            renderVideos();
+        });
+
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-closed');
+            document.querySelector('main').classList.toggle('ml-0');
+        });
+
+        document.getElementById('login-btn').addEventListener('click', function() {
+            alert('Login não disponível nesta versão demo. Imagine-se logado! 👍');
+        });
+
+        window.addEventListener('DOMContentLoaded', renderVideos);
+    </script>
+</body>
+</html>
+</content>
+</create_file>
+</path>
+</attempt_completion>

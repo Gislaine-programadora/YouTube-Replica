@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Replica - Busca e Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Header -->
+  <header class="bg-red-600 text-white p-4 flex items-center justify-between">
+    <h1 class="text-xl font-bold">🎬 YouTube Replica</h1>
+    <div class="flex items-center space-x-2">
+      <input id="search-input" type="text" placeholder="Buscar vídeos..."
+        class="px-3 py-2 rounded-md text-black w-64">
+      <button id="search-btn"
+        class="bg-white text-red-600 px-4 py-2 rounded-md font-semibold">
+        Buscar
+      </button>
+    </div>
+  </header>
+
+  <!-- Player principal -->
+  <main class="p-6">
+    <div id="player-container" class="w-full max-w-4xl mx-auto mb-8 hidden">
+      <iframe id="player-iframe" width="100%" height="480" class="rounded-lg shadow-lg"
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      <h2 id="video-title" class="text-xl font-bold mt-4"></h2>
+      <p id="video-info" class="text-gray-600"></p>
+    </div>
+
+    <!-- Grid de resultados -->
+    <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </main>
+
+  <script>
+    const API_KEY = "AIzaSyCLsn0TzGLYVPpGKF6NJmR5URE8a7jAN2c"; // sua chave válida
+    const searchBtn = document.getElementById("search-btn");
+    const searchInput = document.getElementById("search-input");
+    const grid = document.getElementById("videos-grid");
+    const playerContainer = document.getElementById("player-container");
+    const playerIframe = document.getElementById("player-iframe");
+    const videoTitle = document.getElementById("video-title");
+    const videoInfo = document.getElementById("video-info");
+
+    // Busca vídeos no YouTube
+    async function searchVideos() {
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      grid.innerHTML = "<p class='col-span-3 text-center text-gray-600'>🔍 Buscando vídeos...</p>";
+
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = "<p class='col-span-3 text-center text-red-500'>❌ Nenhum vídeo encontrado.</p>";
+          return;
+        }
+
+        grid.innerHTML = "";
+        data.items.forEach(video => {
+          const videoId = video.id.videoId;
+          const snippet = video.snippet;
+
+          const videoItem = document.createElement("div");
+          videoItem.className = "bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition";
+
+          videoItem.innerHTML = `
+            <img src="${snippet.thumbnails.medium.url}" alt="${snippet.title}" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-semibold text-lg truncate">${snippet.title}</h3>
+              <p class="text-sm text-gray-600">${snippet.channelTitle}</p>
+            </div>
+          `;
+
+          videoItem.addEventListener("click", () => playVideo(videoId, snippet));
+          grid.appendChild(videoItem);
+        });
+      } catch (error) {
+        console.error(error);
+        grid.innerHTML = "<p class='col-span-3 text-center text-red-500'>⚠️ Erro ao buscar vídeos.</p>";
+      }
+    }
+
+    // Reproduz vídeo no player principal
+    function playVideo(videoId, snippet) {
+      playerIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd1080`;
+      videoTitle.textContent = snippet.title;
+      videoInfo.textContent = snippet.channelTitle;
+      playerContainer.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Eventos
+    searchBtn.addEventListener("click", searchVideos);
+    searchInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") searchVideos();
+    });
+  </script>
+</body>
+</html>

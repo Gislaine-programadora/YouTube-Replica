@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Vídeos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #fff;
+        }
+        header {
+            padding: 20px;
+            text-align: center;
+            background-color: #1e1e1e;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            max-width: 400px;
+            border-radius: 5px;
+            border: none;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff0000;
+            color: white;
+            cursor: pointer;
+        }
+        #videos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px;
+        }
+        .video-item {
+            width: 300px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .video-item img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .video-item h4 {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            color: #fff;
+        }
+        #playerModal {
+            display: none;
+            position: fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        #playerModal iframe {
+            width: 80%;
+            height: 60%;
+            border: none;
+            border-radius: 10px;
+        }
+        #playerModal span {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 30px;
+            cursor: pointer;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Busca de Vídeos</h1>
+        <input type="text" id="search" placeholder="Digite o nome do vídeo ou artista">
+        <button onclick="searchVideos()">Buscar</button>
+    </header>
+
+    <div id="videos"></div>
+
+    <div id="playerModal" onclick="closePlayer(event)">
+        <span>&times;</span>
+        <iframe id="player" src="" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyCLsn0TzGLYVPpGKF6NJmR5URE8a7jAN2c"; // <- Sua API Key do YouTube
+        const videosContainer = document.getElementById('videos');
+        const playerModal = document.getElementById('playerModal');
+        const player = document.getElementById('player');
+
+        async function searchVideos() {
+            const query = document.getElementById('search').value;
+            if(!query) return alert("Digite algo para buscar!");
+
+            const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=12&key=${API_KEY}`);
+            const data = await response.json();
+
+            videosContainer.innerHTML = '';
+
+            data.items.forEach(item => {
+                const videoId = item.id.videoId;
+                const title = item.snippet.title;
+                const thumbnail = item.snippet.thumbnails.high.url;
+
+                const videoDiv = document.createElement('div');
+                videoDiv.className = 'video-item';
+                videoDiv.innerHTML = `
+                    <img src="${thumbnail}" alt="${title}">
+                    <h4>${title}</h4>
+                `;
+                videoDiv.onclick = () => openPlayer(videoId);
+                videosContainer.appendChild(videoDiv);
+            });
+        }
+
+        function openPlayer(videoId) {
+            player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            playerModal.style.display = 'flex';
+        }
+
+        function closePlayer(event) {
+            if(event.target === playerModal || event.target.tagName === 'SPAN') {
+                player.src = '';
+                playerModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

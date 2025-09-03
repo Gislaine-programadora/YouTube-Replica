@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vídeos de Filmes e Músicas</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<style>
+  body {
+    font-family: 'Roboto', serif;
+    background-color: #f9f9f9;
+  }
+  .video-player {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .video-player.show {
+    display: flex;
+  }
+</style>
+</head>
+<body class="p-4">
+
+<h1 class="text-3xl mb-4 font-bold">Vídeos de Filmes e Músicas</h1>
+
+<!-- Botão para abrir todos -->
+<div class="mb-4">
+  <button onclick="abrirTodos()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+    Abrir todos os vídeos
+  </button>
+</div>
+
+<!-- Lista de vídeos -->
+<div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+
+<!-- Modal do vídeo -->
+<div id="video-player" class="video-player">
+  <div class="w-full max-w-3xl p-4 bg-black rounded-lg relative">
+    <button onclick="closePlayer()" class="absolute top-2 right-2 text-gray-300 hover:text-white z-10">
+      <i class="fas fa-times text-xl"></i>
+    </button>
+    <iframe id="player-iframe" class="w-full h-96" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div class="mt-4 text-white">
+      <h3 id="video-title" class="text-lg font-bold mb-2"></h3>
+      <p id="video-info"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Lista de vídeos (filmes, músicas, etc.)
+const videos = [
+  {
+    id: 'dQw4w9WgXcQ',
+    title: 'Música: Never Gonna Give You Up',
+    channel: 'Rick Astley',
+    views: '1.4B visualizações'
+  },
+  {
+    id: '9bZkp7q19f0',
+    title: 'Música: Gangnam Style',
+    channel: 'PSY',
+    views: '4.8B visualizações'
+  },
+  {
+    id: 'LsoLEjrDogU',
+    title: 'Filme: O Poderoso Chefão Trailer',
+    channel: 'Universal Pictures',
+    views: '10M visualizações'
+  },
+  {
+    id: 'hTWKbfoikeg',
+    title: 'Filme: Titanic (Trecho de Música)',
+    channel: 'Paramount Pictures',
+    views: '5M visualizações'
+  }
+  // Adicione mais vídeos aqui
+];
+
+// Renderiza a lista de vídeos
+function renderVideos() {
+  const grid = document.getElementById('videos-grid');
+  grid.innerHTML = '';
+  videos.forEach(video => {
+    const card = document.createElement('div');
+    card.className = 'cursor-pointer bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition p-2';
+    card.innerHTML = `
+      <img src="https://img.youtube.com/vi/${video.id}/hqdefault.jpg" class="w-full h-40 object-cover rounded" />
+      <div class="p-2">
+        <h2 class="text-sm font-semibold mb-1">${video.title}</h2>
+        <p class="text-xs text-gray-600">${video.channel}</p>
+        <p class="text-xs text-gray-500">${video.views}</p>
+      </div>
+    `;
+    card.addEventListener('click', () => openPlayer(video));
+    grid.appendChild(card);
+  });
+}
+
+// Abre o vídeo no modal
+function openPlayer(video) {
+  document.getElementById('video-title').textContent = video.title;
+  document.getElementById('video-info').textContent = `${video.channel} • ${video.views}`;
+  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${video.id}?autoplay=1`;
+  document.getElementById('video-player').classList.add('show');
+}
+
+// Fecha o modal
+function closePlayer() {
+  document.getElementById('player-iframe').src = '';
+  document.getElementById('video-player').classList.remove('show');
+}
+
+// Abre todos os vídeos em novas abas
+function abrirTodos() {
+  videos.forEach(video => {
+    window.open(`https://youtube.com/watch?v=${video.id}`, '_blank');
+  });
+}
+
+// Renderiza ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+  renderVideos();
+});
+</script>
+
+</body>
+</html>
